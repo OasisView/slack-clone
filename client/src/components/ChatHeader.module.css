@@ -1,0 +1,42 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--slack-border);
+  min-height: 50px;
+}
+
+.channelInfo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--slack-text-primary);
+}
+
+.channelName {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.iconBtn {
+  background: none;
+  border: none;
+  color: var(--slack-text-secondary);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+}
+
+.iconBtn:hover {
+  background: var(--slack-hover-bg);
+  color: var(--slack-text-primary);
+}
