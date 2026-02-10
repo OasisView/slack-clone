@@ -1,0 +1,17 @@
+.list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 0;
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.emptyText {
+  color: var(--slack-text-secondary);
+  font-size: 15px;
+}
