@@ -229,6 +229,89 @@ describe("Socket.io", () => {
     });
   });
 
+  describe("DM Sockets", () => {
+    it("should join a DM room", (done) => {
+      client = createClient({ id: 1, username: "ismael" });
+      client.on("connect", () => {
+        client.emit("joinDM", { recipientId: 2 });
+        setTimeout(() => {
+          expect(client.connected).toBe(true);
+          done();
+        }, 100);
+      });
+    });
+
+    it("should broadcast DM typing to recipient in room", (done) => {
+      const sender = createClient({ id: 1, username: "ismael" });
+      const receiver = createClient({ id: 2, username: "testuser" });
+
+      let bothJoined = 0;
+
+      receiver.on("dmUserTyping", ({ username }) => {
+        expect(username).toBe("ismael");
+        sender.disconnect();
+        receiver.disconnect();
+        done();
+      });
+
+      const joinAndEmit = () => {
+        bothJoined++;
+        if (bothJoined === 2) {
+          setTimeout(() => {
+            sender.emit("dmTyping", { recipientId: 2 });
+          }, 100);
+        }
+      };
+
+      sender.on("connect", () => {
+        sender.emit("joinDM", { recipientId: 2 });
+        setTimeout(joinAndEmit, 50);
+      });
+
+      receiver.on("connect", () => {
+        receiver.emit("joinDM", { recipientId: 1 });
+        setTimeout(joinAndEmit, 50);
+      });
+
+      client = sender;
+    });
+
+    it("should broadcast DM stopTyping to recipient in room", (done) => {
+      const sender = createClient({ id: 1, username: "ismael" });
+      const receiver = createClient({ id: 2, username: "testuser" });
+
+      let bothJoined = 0;
+
+      receiver.on("dmUserStopTyping", ({ username }) => {
+        expect(username).toBe("ismael");
+        sender.disconnect();
+        receiver.disconnect();
+        done();
+      });
+
+      const joinAndEmit = () => {
+        bothJoined++;
+        if (bothJoined === 2) {
+          setTimeout(() => {
+            sender.emit("dmStopTyping", { recipientId: 2 });
+          }, 100);
+        }
+      };
+
+      sender.on("connect", () => {
+        sender.emit("joinDM", { recipientId: 2 });
+        setTimeout(joinAndEmit, 50);
+      });
+
+      receiver.on("connect", () => {
+        receiver.emit("joinDM", { recipientId: 1 });
+        setTimeout(joinAndEmit, 50);
+      });
+
+      client = sender;
+    });
+  });
+
   describe("Messaging", () => {
     it("should emit sendMessage to server without error", (done) => {
       // Use a real user ID from the DB (id: 1 = ismael)

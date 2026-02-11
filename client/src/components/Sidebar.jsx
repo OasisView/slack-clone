@@ -9,6 +9,7 @@ import {
   LogOut,
 } from 'lucide-react'
 import ChannelCreate from './ChannelCreate.jsx'
+import DMCreate from './DMCreate.jsx'
 import styles from './Sidebar.module.css'
 
 export default function Sidebar({
@@ -16,10 +17,16 @@ export default function Sidebar({
   activeChannel,
   onSelectChannel,
   onChannelCreated,
+  conversations,
+  activeDM,
+  onSelectDM,
+  onStartDM,
   user,
   onLogout,
+  onlineUsers,
 }) {
   const [showCreate, setShowCreate] = useState(false)
+  const [showNewDM, setShowNewDM] = useState(false)
   const [channelsOpen, setChannelsOpen] = useState(true)
   const [dmsOpen, setDmsOpen] = useState(true)
 
@@ -80,7 +87,7 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* Direct Messages section (static placeholder) */}
+      {/* Direct Messages section */}
       <div className={styles.section}>
         <div
           className={styles.sectionHeader}
@@ -91,16 +98,39 @@ export default function Sidebar({
             className={`${styles.chevron} ${!dmsOpen ? styles.collapsed : ''}`}
           />
           <span>Direct messages</span>
-          <button className={styles.addBtn}>
+          <button
+            className={styles.addBtn}
+            onClick={(e) => {
+              e.stopPropagation()
+              setShowNewDM(true)
+            }}
+          >
             <Plus size={16} />
           </button>
         </div>
         {dmsOpen && (
           <div className={styles.channelList}>
+            {/* Self entry (always first) */}
             <div className={styles.dmItem}>
               <div className={styles.dmAvatar}>{user?.username?.charAt(0).toUpperCase()}</div>
               <span>{user?.username} (you)</span>
             </div>
+            {/* DM conversations */}
+            {conversations?.map((conv) => (
+              <div
+                key={conv.id}
+                className={`${styles.dmItem} ${activeDM?.id === conv.id ? styles.active : ''}`}
+                onClick={() => onSelectDM(conv)}
+              >
+                <div className={styles.dmAvatar}>
+                  {conv.other_username.charAt(0).toUpperCase()}
+                </div>
+                <span>{conv.other_username}</span>
+                {onlineUsers?.some(u => u.userId === conv.other_user_id) && (
+                  <span className={styles.onlineDot} />
+                )}
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -124,6 +154,18 @@ export default function Sidebar({
             setShowCreate(false)
           }}
           onClose={() => setShowCreate(false)}
+        />
+      )}
+
+      {/* DM create modal */}
+      {showNewDM && (
+        <DMCreate
+          currentUserId={user?.id}
+          onSelect={(userId) => {
+            onStartDM(userId)
+            setShowNewDM(false)
+          }}
+          onClose={() => setShowNewDM(false)}
         />
       )}
     </div>

@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import styles from './MessageInput.module.css'
 
-export default function MessageInput({ channelName, onSendMessage, onTyping }) {
+export default function MessageInput({ channelName, dmUsername, onSendMessage, onTyping }) {
   const [content, setContent] = useState('')
 
   const handleSubmit = (e) => {

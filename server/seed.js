@@ -23,6 +23,23 @@ async function seed() {
         created_at TIMESTAMP DEFAULT NOW()
       );
       CREATE INDEX IF NOT EXISTS idx_messages_channel ON messages(channel_id, created_at);
+
+      CREATE TABLE IF NOT EXISTS conversations (
+        id SERIAL PRIMARY KEY,
+        user1_id INTEGER REFERENCES users(id) NOT NULL,
+        user2_id INTEGER REFERENCES users(id) NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(user1_id, user2_id)
+      );
+
+      CREATE TABLE IF NOT EXISTS direct_messages (
+        id SERIAL PRIMARY KEY,
+        content TEXT NOT NULL,
+        sender_id INTEGER REFERENCES users(id) NOT NULL,
+        conversation_id INTEGER REFERENCES conversations(id) NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_dm_conversation ON direct_messages(conversation_id, created_at);
     `);
 
     // Seed default channels

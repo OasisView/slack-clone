@@ -184,3 +184,16 @@
   background: rgba(255, 255, 255, 0.1);
   color: var(--slack-text-white);
 }
+
+.dmItem.active {
+  background: var(--slack-sidebar-active);
+  color: var(--slack-text-white);
+}
+
+.onlineDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #44b078;
+  margin-left: auto;
+}

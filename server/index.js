@@ -8,6 +8,8 @@ const authRoutes = require("./routes/auth");
 const channelRoutes = require("./routes/channels");
 const messageRoutes = require("./routes/messages");
 const chatHandler = require("./sockets/chatHandler");
+const dmRoutes = require("./routes/dm");
+const userRoutes = require("./routes/users");
 
 const app = express();
 const server = http.createServer(app);
@@ -27,6 +29,8 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/channels", channelRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/dm", dmRoutes);
+app.use("/api/users", userRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {

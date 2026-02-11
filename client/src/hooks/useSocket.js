@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { io } from 'socket.io-client'
 
-export function useSocket({ token, channelId, onNewMessage }) {
+export function useSocket({ token, channelId, activeDM, onNewMessage, onNewDM }) {
   const socketRef = useRef(null)
   const [onlineUsers, setOnlineUsers] = useState([])
   const [typingUsers, setTypingUsers] = useState([])
@@ -38,12 +38,21 @@ export function useSocket({ token, channelId, onNewMessage }) {
       setOnlineUsers(users)
     })
 
-    // Typing indicators
+    // Channel typing indicators
     socket.on('userTyping', ({ username }) => {
       setTypingUsers((prev) => prev.includes(username) ? prev : [...prev, username])
     })
 
     socket.on('userStopTyping', ({ username }) => {
+      setTypingUsers((prev) => prev.filter((u) => u !== username))
+    })
+
+    // DM typing indicators
+    socket.on('dmUserTyping', ({ username }) => {
+      setTypingUsers((prev) => prev.includes(username) ? prev : [...prev, username])
+    })
+
+    socket.on('dmUserStopTyping', ({ username }) => {
       setTypingUsers((prev) => prev.filter((u) => u !== username))
     })
 
@@ -54,7 +63,7 @@ export function useSocket({ token, channelId, onNewMessage }) {
     }
   }, [token])
 
-  // Join channel when channelId changes — also clear typing users
+  // Join channel when channelId changes
   useEffect(() => {
     const socket = socketRef.current
     if (!socket || !channelId) return
@@ -63,7 +72,16 @@ export function useSocket({ token, channelId, onNewMessage }) {
     socket.emit('joinChannel', { channelId })
   }, [channelId])
 
-  // Listen for new messages
+  // Join DM room when activeDM changes
+  useEffect(() => {
+    const socket = socketRef.current
+    if (!socket || !activeDM) return
+
+    setTypingUsers([])
+    socket.emit('joinDM', { recipientId: activeDM.other_user_id })
+  }, [activeDM])
+
+  // Listen for new channel messages
   useEffect(() => {
     const socket = socketRef.current
     if (!socket) return
@@ -75,33 +93,69 @@ export function useSocket({ token, channelId, onNewMessage }) {
     }
   }, [onNewMessage])
 
-  // Send message function
+  // Listen for new DMs
+  useEffect(() => {
+    const socket = socketRef.current
+    if (!socket || !onNewDM) return
+
+    socket.on('newDM', onNewDM)
+
+    return () => {
+      socket.off('newDM', onNewDM)
+    }
+  }, [onNewDM])
+
+  // Send channel message
   const sendMessage = useCallback(
     (content) => {
       const socket = socketRef.current
       if (!socket || !channelId) return
       socket.emit('sendMessage', { channelId, content })
-      // Stop typing when message is sent
       socket.emit('stopTyping', { channelId })
     },
     [channelId]
   )
 
-  // Emit typing event (with auto-stop after 2s of no input)
+  // Send DM
+  const sendDM = useCallback(
+    (content) => {
+      const socket = socketRef.current
+      if (!socket || !activeDM) return
+      socket.emit('sendDM', {
+        recipientId: activeDM.other_user_id,
+        conversationId: activeDM.id,
+        content,
+      })
+      socket.emit('dmStopTyping', { recipientId: activeDM.other_user_id })
+    },
+    [activeDM]
+  )
+
+  // Channel typing
   const emitTyping = useCallback(() => {
     const socket = socketRef.current
     if (!socket || !channelId) return
 
     socket.emit('typing', { channelId })
 
-    // Clear previous timeout
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
-
-    // Auto-stop after 2 seconds of no typing
     typingTimeoutRef.current = setTimeout(() => {
       socket.emit('stopTyping', { channelId })
     }, 2000)
   }, [channelId])
 
-  return { sendMessage, emitTyping, onlineUsers, typingUsers }
+  // DM typing
+  const emitDMTyping = useCallback(() => {
+    const socket = socketRef.current
+    if (!socket || !activeDM) return
+
+    socket.emit('dmTyping', { recipientId: activeDM.other_user_id })
+
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit('dmStopTyping', { recipientId: activeDM.other_user_id })
+    }, 2000)
+  }, [activeDM])
+
+  return { sendMessage, emitTyping, sendDM, emitDMTyping, onlineUsers, typingUsers }
 }

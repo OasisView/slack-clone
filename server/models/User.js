@@ -29,6 +29,13 @@ const User = {
     return result.rows[0];
   },
 
+  async getAll() {
+    const result = await pool.query(
+      "SELECT id, username, created_at FROM users ORDER BY username"
+    );
+    return result.rows;
+  },
+
   async verifyPassword(password, passwordHash) {
     return bcrypt.compare(password, passwordHash);
   },

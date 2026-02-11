@@ -1,5 +1,7 @@
 const jwt = require("jsonwebtoken");
 const Message = require("../models/Message");
+const DirectMessage = require("../models/DirectMessage");
+const Conversation = require("../models/Conversation");
 
 // Track online users: Map<socketId, { userId, username }>
 const onlineUsers = new Map();
@@ -81,6 +83,58 @@ function chatHandler(io) {
       socket.to(`channel-${channelId}`).emit("userStopTyping", {
         username: socket.user.username,
         channelId,
+      });
+    });
+
+    // --- DM Events ---
+
+    // Join a DM room
+    socket.on("joinDM", ({ recipientId }) => {
+      const roomName = `dm-${Math.min(socket.user.id, recipientId)}-${Math.max(socket.user.id, recipientId)}`;
+
+      socket.rooms.forEach((room) => {
+        if (room !== socket.id) {
+          socket.leave(room);
+        }
+      });
+
+      socket.join(roomName);
+      console.log(`${socket.user.username} joined DM room ${roomName}`);
+    });
+
+    // Send a DM
+    socket.on("sendDM", async ({ recipientId, conversationId, content }) => {
+      if (!content || !content.trim()) return;
+
+      try {
+        const saved = await DirectMessage.create(content.trim(), socket.user.id, conversationId);
+        const roomName = `dm-${Math.min(socket.user.id, recipientId)}-${Math.max(socket.user.id, recipientId)}`;
+
+        io.to(roomName).emit("newDM", {
+          id: saved.id,
+          content: saved.content,
+          username: socket.user.username,
+          conversation_id: conversationId,
+          created_at: saved.created_at,
+        });
+      } catch (err) {
+        console.error("Send DM error:", err);
+        socket.emit("error", { message: "Failed to send DM" });
+      }
+    });
+
+    // DM typing indicators
+    socket.on("dmTyping", ({ recipientId }) => {
+      const roomName = `dm-${Math.min(socket.user.id, recipientId)}-${Math.max(socket.user.id, recipientId)}`;
+      socket.to(roomName).emit("dmUserTyping", {
+        username: socket.user.username,
+      });
+    });
+
+    socket.on("dmStopTyping", ({ recipientId }) => {
+      const roomName = `dm-${Math.min(socket.user.id, recipientId)}-${Math.max(socket.user.id, recipientId)}`;
+      socket.to(roomName).emit("dmUserStopTyping", {
+        username: socket.user.username,
       });
     });
 

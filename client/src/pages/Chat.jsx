@@ -12,11 +12,14 @@ export default function Chat() {
   const [channels, setChannels] = useState([])
   const [activeChannel, setActiveChannel] = useState(null)
   const [messages, setMessages] = useState([])
+  const [conversations, setConversations] = useState([])
+  const [activeDM, setActiveDM] = useState(null)
+  const [dmMessages, setDmMessages] = useState([])
   const { getUser, getToken, logout } = useAuth()
   const user = getUser()
   const token = getToken()
 
-  // Fetch channels on mount
+  // Fetch channels and conversations on mount
   useEffect(() => {
     api.get('/api/channels').then((res) => {
       setChannels(res.data)
@@ -24,9 +27,12 @@ export default function Chat() {
         setActiveChannel(res.data[0])
       }
     })
+    api.get('/api/dm/conversations').then((res) => {
+      setConversations(res.data)
+    })
   }, [])
 
-  // Fetch message history when channel changes
+  // Fetch channel message history
   useEffect(() => {
     if (!activeChannel) return
     api.get(`/api/messages/${activeChannel.id}`).then((res) => {
@@ -34,7 +40,15 @@ export default function Chat() {
     })
   }, [activeChannel])
 
-  // Handle incoming real-time messages
+  // Fetch DM message history
+  useEffect(() => {
+    if (!activeDM) return
+    api.get(`/api/dm/messages/${activeDM.id}`).then((res) => {
+      setDmMessages(res.data)
+    })
+  }, [activeDM])
+
+  // Handle incoming channel messages
   const handleNewMessage = useCallback(
     (msg) => {
       if (msg.channel_id === activeChannel?.id) {
@@ -44,11 +58,47 @@ export default function Chat() {
     [activeChannel]
   )
 
-  const { sendMessage, emitTyping, onlineUsers, typingUsers } = useSocket({
+  // Handle incoming DMs
+  const handleNewDM = useCallback(
+    (msg) => {
+      if (msg.conversation_id === activeDM?.id) {
+        setDmMessages((prev) => [...prev, msg])
+      }
+    },
+    [activeDM]
+  )
+
+  const { sendMessage, emitTyping, sendDM, emitDMTyping, onlineUsers, typingUsers } = useSocket({
     token,
     channelId: activeChannel?.id,
+    activeDM,
     onNewMessage: handleNewMessage,
+    onNewDM: handleNewDM,
   })
+
+  // Switch to a channel (clear DM)
+  const handleSelectChannel = (ch) => {
+    setActiveDM(null)
+    setDmMessages([])
+    setActiveChannel(ch)
+  }
+
+  // Switch to a DM (clear channel)
+  const handleSelectDM = (conv) => {
+    setActiveChannel(null)
+    setMessages([])
+    setActiveDM(conv)
+  }
+
+  // Start a new DM
+  const handleStartDM = async (userId) => {
+    const res = await api.post('/api/dm/conversations', { userId })
+    const conv = res.data
+    const listRes = await api.get('/api/dm/conversations')
+    setConversations(listRes.data)
+    const full = listRes.data.find(c => c.id === conv.id)
+    handleSelectDM(full)
+  }
 
   const handleChannelCreated = (ch) => {
     setChannels((prev) => [...prev, ch])
@@ -59,19 +109,31 @@ export default function Chat() {
       <Sidebar
         channels={channels}
         activeChannel={activeChannel}
-        onSelectChannel={setActiveChannel}
+        onSelectChannel={handleSelectChannel}
         onChannelCreated={handleChannelCreated}
+        conversations={conversations}
+        activeDM={activeDM}
+        onSelectDM={handleSelectDM}
+        onStartDM={handleStartDM}
         user={user}
         onLogout={logout}
         onlineUsers={onlineUsers}
       />
       <div className={styles.main}>
-        <ChatHeader channel={activeChannel} onlineCount={onlineUsers.length} />
-        <MessageList messages={messages} typingUsers={typingUsers} />
+        <ChatHeader
+          channel={activeChannel}
+          dm={activeDM}
+          onlineCount={onlineUsers.length}
+        />
+        <MessageList
+          messages={activeChannel ? messages : dmMessages}
+          typingUsers={typingUsers}
+        />
         <MessageInput
-          channelName={activeChannel?.name}
-          onSendMessage={sendMessage}
-          onTyping={emitTyping}
+          channelName={activeChannel ? activeChannel.name : null}
+          dmUsername={activeDM ? activeDM.other_username : null}
+          onSendMessage={activeChannel ? sendMessage : sendDM}
+          onTyping={activeChannel ? emitTyping : emitDMTyping}
         />
       </div>
     </div>

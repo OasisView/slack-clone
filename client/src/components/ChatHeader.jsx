@@ -1,16 +1,22 @@
 import { Hash, Users, Pin, Search } from 'lucide-react'
 import styles from './ChatHeader.module.css'
 
-export default function ChatHeader({ channel, onlineCount = 0 }) {
-  if (!channel) return null
+export default function ChatHeader({ channel, dm, onlineCount = 0 }) {
+  if (!channel && !dm) return null
 
   return (
     <div className={styles.header}>
       <div className={styles.channelInfo}>
-        <Hash size={18} />
-        <h2 className={styles.channelName}>{channel.name}</h2>
-        {onlineCount > 0 && (
-          <span className={styles.onlineCount}>{onlineCount} online</span>
+        {channel ? (
+          <>
+            <Hash size={18} />
+            <h2 className={styles.channelName}>{channel.name}</h2>
+            {onlineCount > 0 && (
+              <span className={styles.onlineCount}>{onlineCount} online</span>
+            )}
+          </>
+        ) : (
+          <h2 className={styles.channelName}>{dm.other_username}</h2>
         )}
       </div>
       <div className={styles.actions}>
