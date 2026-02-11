@@ -48,4 +48,64 @@ describe("Channels API", () => {
       expect(res.status).toBe(401);
     });
   });
+
+  describe("POST /api/channels", () => {
+    const uniqueChannel = `test-ch-${Date.now()}`;
+
+    it("should create a new channel", async () => {
+      const res = await request(app)
+        .post("/api/channels")
+        .set("Authorization", `Bearer ${testToken}`)
+        .send({ name: uniqueChannel });
+
+      expect(res.status).toBe(201);
+      expect(res.body).toHaveProperty("id");
+      expect(res.body.name).toBe(uniqueChannel);
+    });
+
+    it("should reject duplicate channel name", async () => {
+      const res = await request(app)
+        .post("/api/channels")
+        .set("Authorization", `Bearer ${testToken}`)
+        .send({ name: uniqueChannel });
+
+      expect(res.status).toBe(409);
+      expect(res.body.error).toBe("Channel already exists");
+    });
+
+    it("should reject empty channel name", async () => {
+      const res = await request(app)
+        .post("/api/channels")
+        .set("Authorization", `Bearer ${testToken}`)
+        .send({ name: "" });
+
+      expect(res.status).toBe(400);
+    });
+
+    it("should reject missing name field", async () => {
+      const res = await request(app)
+        .post("/api/channels")
+        .set("Authorization", `Bearer ${testToken}`)
+        .send({});
+
+      expect(res.status).toBe(400);
+    });
+
+    it("should reject whitespace-only name", async () => {
+      const res = await request(app)
+        .post("/api/channels")
+        .set("Authorization", `Bearer ${testToken}`)
+        .send({ name: "   " });
+
+      expect(res.status).toBe(400);
+    });
+
+    it("should reject unauthenticated requests", async () => {
+      const res = await request(app)
+        .post("/api/channels")
+        .send({ name: "sneaky" });
+
+      expect(res.status).toBe(401);
+    });
+  });
 });

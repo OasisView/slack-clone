@@ -42,5 +42,44 @@ describe("Messages API", () => {
 
       expect(res.status).toBe(401);
     });
+
+    it("should reject invalid token", async () => {
+      const res = await request(app)
+        .get("/api/messages/1")
+        .set("Authorization", "Bearer bad-token");
+
+      expect(res.status).toBe(401);
+    });
+
+    it("should return messages with expected fields", async () => {
+      const res = await request(app)
+        .get("/api/messages/1")
+        .set("Authorization", `Bearer ${testToken}`);
+
+      expect(res.status).toBe(200);
+      if (res.body.length > 0) {
+        const msg = res.body[0];
+        expect(msg).toHaveProperty("id");
+        expect(msg).toHaveProperty("content");
+        expect(msg).toHaveProperty("username");
+        expect(msg).toHaveProperty("created_at");
+        expect(msg).toHaveProperty("channel_id");
+      }
+    });
+
+    it("should return messages in chronological order", async () => {
+      const res = await request(app)
+        .get("/api/messages/1")
+        .set("Authorization", `Bearer ${testToken}`);
+
+      expect(res.status).toBe(200);
+      if (res.body.length > 1) {
+        for (let i = 1; i < res.body.length; i++) {
+          const prev = new Date(res.body[i - 1].created_at);
+          const curr = new Date(res.body[i].created_at);
+          expect(curr >= prev).toBe(true);
+        }
+      }
+    });
   });
 });

@@ -84,5 +84,56 @@ describe("Auth API", () => {
 
       expect(res.status).toBe(401);
     });
+
+    it("should reject missing username", async () => {
+      const res = await request(app)
+        .post("/api/auth/login")
+        .send({ password: "testpass123" });
+
+      expect(res.status).toBe(400);
+    });
+
+    it("should reject missing password", async () => {
+      const res = await request(app)
+        .post("/api/auth/login")
+        .send({ username: "someuser" });
+
+      expect(res.status).toBe(400);
+    });
+
+    it("should reject empty body", async () => {
+      const res = await request(app)
+        .post("/api/auth/login")
+        .send({});
+
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe("Token validation", () => {
+    it("should return a token with correct payload", async () => {
+      const res = await request(app)
+        .post("/api/auth/login")
+        .send(testUser);
+
+      const decoded = jwt.verify(res.body.token, process.env.JWT_SECRET);
+      expect(decoded).toHaveProperty("id");
+      expect(decoded.username).toBe(testUser.username);
+      expect(decoded).toHaveProperty("exp");
+    });
+
+    it("signup should not return password_hash", async () => {
+      const newUser = {
+        username: `edgeuser_${Date.now()}`,
+        password: "edgepass123",
+      };
+      const res = await request(app)
+        .post("/api/auth/signup")
+        .send(newUser);
+
+      expect(res.status).toBe(201);
+      expect(res.body.user).not.toHaveProperty("password_hash");
+      expect(res.body.user).not.toHaveProperty("password");
+    });
   });
 });

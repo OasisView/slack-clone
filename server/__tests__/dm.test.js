@@ -116,5 +116,72 @@ describe("DM API", () => {
       const res = await request(app).get(`/api/dm/messages/${conversationId}`);
       expect(res.status).toBe(401);
     });
+
+    it("should return empty array for nonexistent conversation", async () => {
+      const res = await request(app)
+        .get("/api/dm/messages/99999")
+        .set("Authorization", `Bearer ${user1Token}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual([]);
+    });
+  });
+
+  describe("Edge cases", () => {
+    it("should create same conversation regardless of who initiates", async () => {
+      // User 2 creates conversation with User 1 (reverse direction)
+      const res = await request(app)
+        .post("/api/dm/conversations")
+        .set("Authorization", `Bearer ${user2Token}`)
+        .send({ userId: 1 });
+
+      expect(res.status).toBe(201);
+      // Should be same conversation as user1 -> user2
+      expect(res.body.id).toBe(conversationId);
+    });
+
+    it("should reject invalid token on conversations list", async () => {
+      const res = await request(app)
+        .get("/api/dm/conversations")
+        .set("Authorization", "Bearer garbage");
+
+      expect(res.status).toBe(401);
+    });
+
+    it("should reject invalid token on create conversation", async () => {
+      const res = await request(app)
+        .post("/api/dm/conversations")
+        .set("Authorization", "Bearer garbage")
+        .send({ userId: 2 });
+
+      expect(res.status).toBe(401);
+    });
+
+    it("should reject invalid token on DM messages", async () => {
+      const res = await request(app)
+        .get(`/api/dm/messages/${conversationId}`)
+        .set("Authorization", "Bearer garbage");
+
+      expect(res.status).toBe(401);
+    });
+
+    it("both users should see the conversation in their list", async () => {
+      const res1 = await request(app)
+        .get("/api/dm/conversations")
+        .set("Authorization", `Bearer ${user1Token}`);
+
+      const res2 = await request(app)
+        .get("/api/dm/conversations")
+        .set("Authorization", `Bearer ${user2Token}`);
+
+      const conv1 = res1.body.find(c => c.id === conversationId);
+      const conv2 = res2.body.find(c => c.id === conversationId);
+
+      expect(conv1).toBeDefined();
+      expect(conv2).toBeDefined();
+      // User 1 sees User 2 as the other person and vice versa
+      expect(conv1.other_user_id).toBe(2);
+      expect(conv2.other_user_id).toBe(1);
+    });
   });
 });

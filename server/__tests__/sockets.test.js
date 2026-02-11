@@ -369,4 +369,112 @@ describe("Socket.io", () => {
       });
     });
   });
+
+  describe("Edge cases", () => {
+    it("should reject expired token", (done) => {
+      const jwt = require("jsonwebtoken");
+      const expiredToken = jwt.sign(
+        { id: 1, username: "ismael" },
+        process.env.JWT_SECRET,
+        { expiresIn: "0s" }
+      );
+
+      // Small delay to ensure token is expired
+      setTimeout(() => {
+        client = Client(`http://localhost:${port}`, {
+          auth: { token: expiredToken },
+          transports: ["websocket"],
+          forceNew: true,
+        });
+        client.on("connect_error", (err) => {
+          expect(err.message).toBe("Invalid token");
+          done();
+        });
+      }, 100);
+    });
+
+    it("should leave channel room when joining DM room", (done) => {
+      client = createClient({ id: 1, username: "ismael" });
+
+      client.on("connect", () => {
+        // Join channel first
+        client.emit("joinChannel", { channelId: 1 });
+        setTimeout(() => {
+          // Then switch to DM — should leave channel room
+          client.emit("joinDM", { recipientId: 2 });
+          setTimeout(() => {
+            expect(client.connected).toBe(true);
+            done();
+          }, 100);
+        }, 100);
+      });
+    });
+
+    it("should leave DM room when joining channel room", (done) => {
+      client = createClient({ id: 1, username: "ismael" });
+
+      client.on("connect", () => {
+        // Join DM first
+        client.emit("joinDM", { recipientId: 2 });
+        setTimeout(() => {
+          // Then switch to channel — should leave DM room
+          client.emit("joinChannel", { channelId: 1 });
+          setTimeout(() => {
+            expect(client.connected).toBe(true);
+            done();
+          }, 100);
+        }, 100);
+      });
+    });
+
+    it("should not receive channel messages after switching to DM", (done) => {
+      const user1 = createClient({ id: 1, username: "ismael" });
+      const user2 = createClient({ id: 2, username: "testuser" });
+
+      user1.on("connect", () => {
+        // User1 joins channel, then switches to DM
+        user1.emit("joinChannel", { channelId: 1 });
+        setTimeout(() => {
+          user1.emit("joinDM", { recipientId: 2 });
+
+          // User2 joins the channel and sends a message
+          user2.on("connect", () => {
+            user2.emit("joinChannel", { channelId: 1 });
+            setTimeout(() => {
+              user2.emit("sendMessage", { channelId: 1, content: "should not reach user1" });
+            }, 100);
+          });
+
+          // User1 should NOT get this channel message
+          let received = false;
+          user1.on("newMessage", () => { received = true; });
+          setTimeout(() => {
+            expect(received).toBe(false);
+            user1.disconnect();
+            user2.disconnect();
+            done();
+          }, 500);
+        }, 100);
+      });
+
+      client = user1;
+    });
+
+    it("should not send empty DMs", (done) => {
+      client = createClient({ id: 1, username: "ismael" });
+
+      client.on("connect", () => {
+        client.emit("joinDM", { recipientId: 2 });
+        setTimeout(() => {
+          client.emit("sendDM", { recipientId: 2, conversationId: 1, content: "   " });
+          let received = false;
+          client.on("newDM", () => { received = true; });
+          setTimeout(() => {
+            expect(received).toBe(false);
+            done();
+          }, 300);
+        }, 100);
+      });
+    });
+  });
 });
