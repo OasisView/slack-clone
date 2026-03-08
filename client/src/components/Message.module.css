@@ -1,0 +1,51 @@
+.message {
+  display: flex;
+  gap: 12px;
+  padding: 8px 20px;
+}
+
+.message:hover {
+  background: var(--slack-hover-bg);
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.username {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--slack-text-primary);
+}
+
+.time {
+  font-size: 12px;
+  color: var(--slack-text-secondary);
+}
+
+.text {
+  font-size: 15px;
+  line-height: 1.46;
+  color: var(--slack-text-primary);
+  word-break: break-word;
+}

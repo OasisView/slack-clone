@@ -1,0 +1,94 @@
+.container {
+  padding: 0 20px 20px;
+}
+
+.inputBox {
+  border: 1px solid var(--slack-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--slack-border);
+  background: var(--slack-hover-bg);
+}
+
+.toolBtn {
+  background: none;
+  border: none;
+  color: var(--slack-text-secondary);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.toolBtn:hover {
+  background: var(--slack-border);
+  color: var(--slack-text-primary);
+}
+
+.divider {
+  width: 1px;
+  height: 18px;
+  background: var(--slack-border);
+  margin: 0 4px;
+}
+
+.form {
+  display: flex;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  font-family: inherit;
+  background: transparent;
+}
+
+.input::placeholder {
+  color: var(--slack-text-secondary);
+}
+
+.bottomRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+}
+
+.attachActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.sendBtn {
+  background: rgba(0, 0, 0, 0.1);
+  border: none;
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+}
+
+.sendActive {
+  background: var(--slack-green);
+  cursor: pointer;
+}
+
+.sendActive:hover {
+  opacity: 0.9;
+}

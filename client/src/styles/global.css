@@ -1,0 +1,31 @@
+:root {
+  --slack-purple: #4A154B;
+  --slack-purple-dark: #350D36;
+  --slack-sidebar-bg: #3F0E40;
+  --slack-sidebar-hover: #350D36;
+  --slack-sidebar-active: #1164A3;
+  --slack-text-primary: #1D1C1D;
+  --slack-text-secondary: #616061;
+  --slack-text-white: #FFFFFF;
+  --slack-border: #E1E1E1;
+  --slack-bg-main: #FFFFFF;
+  --slack-hover-bg: #F8F8F8;
+  --slack-green: #007A5A;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  color: var(--slack-text-primary);
+  background: var(--slack-bg-main);
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+}

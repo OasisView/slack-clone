@@ -1,0 +1,95 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.header h3 {
+  font-size: 18px;
+  color: var(--slack-text-primary);
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: var(--slack-text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.closeBtn:hover {
+  background: var(--slack-hover-bg);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--slack-text-primary);
+}
+
+.input {
+  padding: 10px 12px;
+  border: 1px solid var(--slack-border);
+  border-radius: 6px;
+  font-size: 15px;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--slack-sidebar-active);
+}
+
+.error {
+  color: #e01e5a;
+  font-size: 13px;
+}
+
+.button {
+  padding: 10px;
+  background: var(--slack-green);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.button:hover {
+  opacity: 0.9;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

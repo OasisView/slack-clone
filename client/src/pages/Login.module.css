@@ -1,0 +1,96 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, var(--slack-purple) 0%, var(--slack-purple-dark) 100%);
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.logo {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--slack-purple);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: var(--slack-text-secondary);
+  font-size: 14px;
+  margin-bottom: 32px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.input {
+  padding: 12px 16px;
+  border: 1px solid var(--slack-border);
+  border-radius: 8px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  border-color: var(--slack-purple);
+}
+
+.error {
+  color: #e01e5a;
+  font-size: 13px;
+  text-align: left;
+}
+
+.button {
+  padding: 12px;
+  background: var(--slack-purple);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.button:hover {
+  background: var(--slack-purple-dark);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.toggle {
+  margin-top: 24px;
+  color: var(--slack-text-secondary);
+  font-size: 14px;
+}
+
+.toggleBtn {
+  background: none;
+  border: none;
+  color: var(--slack-sidebar-active);
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 4px;
+  font-size: 14px;
+}
+
+.toggleBtn:hover {
+  text-decoration: underline;
+}
